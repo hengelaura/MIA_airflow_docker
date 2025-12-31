@@ -39,6 +39,7 @@ def list_commits():
         if result.returncode != 0:
             task_logger.error("Curl command did not return data successfully.")
             task_logger.error("See output: {}".format(result))
+            continue
 
         # grab results and format into json
         json_result = json.loads(result.stdout)
@@ -46,13 +47,13 @@ def list_commits():
         response_length = len(json_result)
         # store the sha and url of the commit for future use
         for commit in json_result:
-            commit_info.append([commit['sha'], commit['url']])
+            commit_info.append([commit['sha'], commit['url'], commit['commit']['author']['date']])
 
         # update the sha to be the last listed sha, so we can walk backwards through commits
         sha_code = '?sha={}'.format(commit_info[-1][0])
 
     # convert sha and url list into a dataframe and drop duplicates created by previous process
-    commit_info_df = pd.DataFrame(data=commit_info, columns=['commit_sha', 'commit_api_url'])
+    commit_info_df = pd.DataFrame(data=commit_info, columns=['commit_sha', 'commit_api_url', 'commit_date'])
     commit_info_df.drop_duplicates(inplace=True)
     task_logger.info("Total number of commits: {}".format(len(commit_info_df)))
 
